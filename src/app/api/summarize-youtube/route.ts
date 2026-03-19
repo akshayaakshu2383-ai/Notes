@@ -17,8 +17,9 @@ export async function POST(req: Request) {
 
     console.log(`Attempting stealth fetch for Video ID: ${videoId}`);
 
-    // Fetch Transcript with Mobile Stealth Headers
+    // Fetch Transcript with Mobile Stealth Headers and Language Targeting
     const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId, {
+      lang: 'en',
       fetch: (url: any, info: any) => fetch(url, {
         ...info,
         headers: {
