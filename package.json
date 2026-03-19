@@ -4,10 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:resume": "next dev -p 3000",
-    "dev:notes": "next dev -p 3001",
-    "dev:youtube": "next dev -p 3002",
-    "dev:jobs": "next dev -p 3003",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

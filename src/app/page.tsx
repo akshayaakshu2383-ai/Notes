@@ -3,13 +3,6 @@ import { redirect } from "next/navigation";
 import { FileText, ClipboardList, Youtube, Search, CheckCircle2, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const mainApp = process.env.NEXT_PUBLIC_MAIN_APP;
-  
-  if (mainApp === "resume") redirect("/resume");
-  if (mainApp === "notes") redirect("/notes");
-  if (mainApp === "youtube") redirect("/youtube");
-  if (mainApp === "jobs") redirect("/jobs");
-
   const features = [
     {
       title: "AI Resume Maker",
