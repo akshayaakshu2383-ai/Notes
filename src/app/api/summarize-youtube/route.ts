@@ -20,47 +20,51 @@ export async function POST(req: Request) {
             );
         }
 
-        //  Fetch transcript (FIXED METHOD)
-        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+        async function generateSummary(fullText: string) {
+            if (!fullText) throw new Error("No transcript content found");
 
-        const fullText = transcript.map((t: any) => t.text).join(" ");
+            const prompt = `Please summarize the following YouTube video transcript. Provide:
+        1. A short overview
+        2. Key points as bullet points
+        3. A conclusion
+
+        Transcript:
+        ${fullText.substring(0, 15000)}
+
+        Return response in JSON format with keys:
+        overview, bulletPoints, conclusion.`;
+
+            const aiResponse = await generateAIContent(prompt, "You are an expert content summarizer.");
+            
+            let parsedContent;
+            try {
+                parsedContent = JSON.parse(aiResponse);
+            } catch {
+                parsedContent = { overview: aiResponse, bulletPoints: [], conclusion: "" };
+            }
+            return parsedContent;
+        }
+
+        let fullText = "";
+        try {
+            console.log("Trying external proxy...");
+            const response = await fetch(`https://youtubetranscript.com/?server_vid2=${videoId}`);
+            const transcriptXml = await response.text();
+            fullText = transcriptXml
+                .match(/<text[^>]*>([\s\S]*?)<\/text>/g)
+                ?.map(t => t.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
+                .join(" ") || "";
+        } catch (e) {
+            console.log("Proxy failed, falling back to library.");
+        }
 
         if (!fullText) {
-            return NextResponse.json(
-                { success: false, error: "No transcript available for this video" },
-                { status: 500 }
-            );
+            const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+            fullText = transcript.map((t: any) => t.text).join(" ");
         }
 
-        //  AI Summary
-        const prompt = `Please summarize the following YouTube video transcript. Provide:
-    1. A short overview
-    2. Key points as bullet points
-    3. A conclusion
-
-    Transcript:
-    ${fullText.substring(0, 15000)}
-
-    Return response in JSON format with keys:
-    overview, bulletPoints, conclusion.`;
-
-        const aiResponse = await generateAIContent(
-            prompt,
-            "You are an expert content summarizer."
-        );
-
-        let parsedContent;
-        try {
-            parsedContent = JSON.parse(aiResponse);
-        } catch {
-            parsedContent = {
-                overview: aiResponse,
-                bulletPoints: [],
-                conclusion: "",
-            };
-        }
-
-        return NextResponse.json({ success: true, summary: parsedContent });
+        const summary = await generateSummary(fullText);
+        return NextResponse.json({ success: true, summary });
 
     } catch (error: any) {
         console.error("Error:", error);
