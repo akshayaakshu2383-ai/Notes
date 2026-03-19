@@ -47,25 +47,19 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/resume"
+              href="#features"
               className="px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-500 text-lg font-bold transition-all shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-2 group"
             >
-              Get Started
+              Explore Tools
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="#features"
-              className="px-8 py-4 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 text-lg font-bold transition-all flex items-center justify-center"
-            >
-              View Features
             </Link>
           </div>
         </div>
       </section>
-
+ 
       {/* Features Grid */}
-      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-900/50">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, idx) => (
             <Link
               key={idx}
