@@ -15,35 +15,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid YouTube URL format" }, { status: 400 });
     }
 
-    console.log(`Attempting Manual InnerTube iOS Fetch for: ${videoId}`);
-
-    const innerTubeResponse = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "User-Agent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)",
-            "X-Goog-Api-Format-Version": "2",
-        },
-        body: JSON.stringify({
-            context: {
-                client: {
-                    clientName: "IOS",
-                    clientVersion: "19.29.1",
-                    deviceMake: "Apple",
-                    deviceModel: "iPhone16,2",
-                    osName: "iPhone",
-                    osVersion: "17.5.1",
-                },
+    async function fetchFromInnerTube(client: string, version: string) {
+        const response = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": client === "IOS" 
+                    ? "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)"
+                    : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                "X-Goog-Api-Format-Version": "2",
             },
-            videoId: videoId,
-        }),
-    });
+            body: JSON.stringify({
+                context: {
+                    client: {
+                        clientName: client,
+                        clientVersion: version,
+                    },
+                },
+                videoId: videoId,
+            }),
+        });
+        return response.json();
+    }
 
-    const playerResponse = await innerTubeResponse.json();
-    const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    console.log(`Attempting Multi-Client InnerTube Fetch for: ${videoId}`);
+    
+    // Try IOS first, then WEB_REMIX as fallback
+    let playerResponse = await fetchFromInnerTube("IOS", "19.29.1");
+    let captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
 
     if (!captionTracks || captionTracks.length === 0) {
-        return NextResponse.json({ success: false, error: "No transcripts available for this video (InnerTube Blocked)" }, { status: 404 });
+        console.log("IOS Blocked, trying WEB_REMIX...");
+        playerResponse = await fetchFromInnerTube("WEB_REMIX", "1.20240722.01.00");
+        captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    }
+
+    if (!captionTracks || captionTracks.length === 0) {
+        const status = playerResponse?.playabilityStatus?.status || "UNKNOWN";
+        const reason = playerResponse?.playabilityStatus?.reason || "No specific reason provided";
+        return NextResponse.json({ 
+            success: false, 
+            error: `YouTube Blocked Vercel. Status: ${status}. Reason: ${reason}. Please try on Localhost!`,
+            debug: status 
+        }, { status: 403 });
     }
 
     // Use the first available track (usually English)
