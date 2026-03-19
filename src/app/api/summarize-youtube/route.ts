@@ -7,17 +7,18 @@ export async function POST(req: Request) {
     const { url } = await req.json();
     if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });
 
-    // Handle YouTube Shorts URLs
-    let videoUrl = url;
-    if (url.includes("/shorts/")) {
-      const match = url.match(/\/shorts\/([^?]+)/);
-      if (match && match[1]) {
-        videoUrl = `https://www.youtube.com/watch?v=${match[1]}`;
-      }
+    // Robust Video ID Extraction
+    const videoIdMatch = url.match(/(?:v=|\/|shorts\/)([0-9A-Za-z_-]{11})/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+
+    if (!videoId) {
+      return NextResponse.json({ success: false, error: "Invalid YouTube URL format" }, { status: 400 });
     }
 
-    // Fetch Transcript
-    const transcriptArray = await YoutubeTranscript.fetchTranscript(videoUrl);
+    console.log(`Fetching transcript for Video ID: ${videoId}`);
+
+    // Fetch Transcript using Video ID
+    const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId);
     const fullText = transcriptArray.map((t) => t.text).join(" ");
 
     // Summarize with AI
