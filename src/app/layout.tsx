@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Project Suite - Resume, Notes, YT Summariser & Jobs",
-  description: "Your all-in-one AI assistant suite.",
+  title: "AIResume maker - AI-Powered Professional Resume Builder",
+  description: "Create stunning, ATS-friendly resumes in minutes with the power of AI.",
 };
 
 export default function RootLayout({

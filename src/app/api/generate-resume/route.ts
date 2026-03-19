@@ -10,6 +10,9 @@ export async function POST(req: Request) {
       prompt = `Generate a professional resume content for the following details. Include a professional summary, bullet points for experience, and highlight key skills.
       Details: ${JSON.stringify(data)}
       Return the response in a structured format (JSON string) with keys: summary, experience (array of objects with role, company, duration, and bulletPoints), and skills.`;
+    } else if (type === "skills") {
+      prompt = `Suggest a list of 10-15 professional skills (technical and soft) for the job title: "${data.role}". 
+      Return the response as a JSON array of strings: ["Skill 1", "Skill 2", ...]. Only return the JSON.`;
     }
 
     const aiResponse = await generateAIContent(prompt);

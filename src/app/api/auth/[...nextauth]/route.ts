@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+import { supabaseAdmin } from "@/lib/supabase";
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -9,15 +11,44 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }: any) {
+      if (account.provider === "google") {
+        try {
+          const { error } = await supabaseAdmin
+            .from("profiles")
+            .upsert({
+              id: user.id,
+              email: user.email,
+              // role is handled by default or manually in DB
+            }, { onConflict: 'id' });
+          
+          if (error) console.error("Error syncing profile:", error);
+        } catch (err) {
+          console.error("Profile sync exception:", err);
+        }
+      }
+      return true;
+    },
     async session({ session, token }: any) {
       if (session?.user) {
         session.user.id = token.sub;
+        
+        // Fetch role from profiles
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("role")
+          .eq("id", token.sub)
+          .single();
+        
+        if (profile) {
+          (session.user as any).role = profile.role;
+        }
       }
       return session;
     },
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/",
   },
 };
 
