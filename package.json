@@ -4,14 +4,28 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:resume": "next dev -p 3000",
+    "dev:notes": "next dev -p 3001",
+    "dev:youtube": "next dev -p 3002",
+    "dev:jobs": "next dev -p 3003",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.2",
+    "axios": "^1.13.6",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.577.0",
     "next": "16.1.7",
+    "next-auth": "^4.24.13",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-to-print": "^3.3.0",
+    "tailwind-merge": "^3.5.0",
+    "youtube-transcript": "^1.3.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
